@@ -8,6 +8,7 @@ from collections import defaultdict
 import itertools
 from discord.ext import commands
 import discord
+import re
 
 from tle import constants
 from tle.util import cache_system2
@@ -290,11 +291,18 @@ def parse_tags(args, *, prefix):
     return tags
 
 
-def parse_rating(args, default_value = None):
+def parse_rating_range(args, default_value = None):
     for arg in args:
-        if arg.isdigit():
-            return int(arg)
-    return default_value
+        # if arg is in form "\d+-\d+" or "\d+~\d+"
+        if re.match(r'^\d+(-|~)\d+$', arg):
+            rmin, rmax = arg.split('-') if '-' in arg else arg.split('~')
+            if rmin.isdigit() and rmax.isdigit() and int(rmin) <= int(rmax):
+                return [int(rmin), int(rmax)]
+
+        elif arg.isdigit():
+            return [int(arg), int(arg)]
+
+    return [default_value, default_value]
 
 def fix_urls(user: cf.User):
     if user.titlePhoto.startswith('//'):

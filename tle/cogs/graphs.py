@@ -22,6 +22,7 @@ from tle.util import codeforces_api as cf
 from tle.util import codeforces_common as cf_common
 from tle.util import discord_common
 from tle.util import graph_common as gc
+from tle.util import cache_system2
 
 pd.plotting.register_matplotlib_converters()
 
@@ -309,12 +310,17 @@ class Graphs(commands.Cog):
             if sub.contestId in subs_by_contest_id:
                 subs_by_contest_id[sub.contestId].append(sub)
 
-        packed_contest_subs_problemset = [
-            (cf_common.cache2.contest_cache.get_contest(contest_id),
-             cf_common.cache2.problemset_cache.get_problemset(contest_id),
-             subs_by_contest_id[contest_id])
-            for contest_id in contest_ids
-        ]
+        packed_contest_subs_problemset = []
+        for contest_id in contest_ids:
+            try:
+                contest = cf_common.cache2.contest_cache.get_contest(contest_id)
+                problemset = cf_common.cache2.problemset_cache.get_problemset(contest_id)
+                subs = subs_by_contest_id[contest_id]
+                packed_contest_subs_problemset.append((contest, problemset, subs))
+            except cache_system2.ProblemsetNotCached:
+                # In case of recent contents or certain bugged contests
+                pass
+
 
         rating = max(ratingchanges, key=lambda change: change.ratingUpdateTimeSeconds).newRating
         _plot_extreme(handle, rating, packed_contest_subs_problemset, solved, unsolved, legend)

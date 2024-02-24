@@ -160,7 +160,10 @@ class Dueling(commands.Cog):
                 
         tags = cf_common.parse_tags(args, prefix='+')
         bantags = cf_common.parse_tags(args, prefix='~')
-        rating = cf_common.parse_rating(args)
+
+        rating_min, rating_max = cf_common.parse_rating_range(args)
+        rating = random.randrange(rating_min, rating_max + 1, 100) if rating_min else None
+
         users = [cf_common.user_db.fetch_cf_user(handle) for handle in handles]
         lowest_rating = min(user.rating or 0 for user in users)
         suggested_rating = max(

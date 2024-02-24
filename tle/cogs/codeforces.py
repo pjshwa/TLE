@@ -103,7 +103,9 @@ class Codeforces(commands.Cog):
         rating = round(cf_common.user_db.fetch_cf_user(handle).effective_rating, -2)
         tags = cf_common.parse_tags(args, prefix='+')
         bantags = cf_common.parse_tags(args, prefix='~')
-        rating = cf_common.parse_rating(args, rating)
+
+        rating_min, rating_max = cf_common.parse_rating_range(args, rating)
+        rating = random.randrange(rating_min, rating_max + 1, 100)
 
         submissions = await cf.user.status(handle=handle)
         solved = {sub.problem.name for sub in submissions if sub.verdict == 'OK'}
@@ -409,7 +411,7 @@ class Codeforces(commands.Cog):
                 if 0 < num_solved < num_problems:
                     contest_unsolved_pairs.append((contest, num_solved, num_problems))
             except cache_system2.ProblemsetNotCached:
-                # In case of recent contents or cetain bugged contests
+                # In case of recent contents or certain bugged contests
                 pass
 
         contest_unsolved_pairs.sort(key=lambda p: (p[2] - p[1], -p[0].startTimeSeconds))
